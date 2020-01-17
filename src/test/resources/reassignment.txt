@@ -1,0 +1,23 @@
+// Reassignment proposition
+
+echo '{"topics": [{"topic": "topic-name"}], "version": 1}' > topics.json
+kafka-reassign-partitions.sh --generate --zookeeper zookeeper --topics-to-move-json-file topics.json --broker-list "1001,1003"
+
+// Reassignment
+
+cat <<EOF > parts.json
+> {
+>   "version": 1, "partitions": [
+>   {"topic": "topic-name", "partition": 0, "replicas": [1001, 1004]},
+>   {"topic": "topic-name", "partition": 1, "replicas": [1004, 1003]},
+>   {"topic": "topic-name", "partition": 2, "replicas": [1003, 1001]},
+>   {"topic": "topic-name", "partition": 3, "replicas": [1001, 1003]}
+> ]
+> }
+> EOF
+
+zookeeper-shell.sh zookeeper:2181 ls /brokers/ids
+
+// Verification
+
+kafka-reassign-partitions.sh --verify --zookeeper zookeeper --reassignment-json-file parts.json
