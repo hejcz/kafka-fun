@@ -44,21 +44,26 @@ public class Test1 {
         consumerConfig.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerConfig.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerConfig.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "consumer-group-0");
-//        consumerConfig.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+        consumerConfig.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1");
+        consumerConfig.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
 //        consumerConfig.setProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "20000");
-//        consumerConfig.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        consumerConfig.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerConfig);
         consumer.assign(Collections.singleton(new TopicPartition("topic-name", 0)));
 
         consumer.seek(new TopicPartition("topic-name", 0), 0);
 
         while (true) {
+            System.out.println("consume loop");
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(1));
-            for (ConsumerRecord<String, String> record : records)
-
-                // print the offset,key and value for the consumer records.
+            for (ConsumerRecord<String, String> record : records) {
                 System.out.printf("offset = %d, key = %s, value = %s\n",
                         record.offset(), record.key(), record.value());
+            }
+            consumer.commitSync(Duration.ofSeconds(1));
+            consumer.close();
+            consumer = new KafkaConsumer<>(consumerConfig);
+            consumer.assign(Collections.singleton(new TopicPartition("topic-name", 0)));
         }
     }
 }
