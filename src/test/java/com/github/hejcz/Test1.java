@@ -48,6 +48,8 @@ public class Test1 {
 //        consumerConfig.setProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "20000");
         consumerConfig.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
+        // Dwóch consumerów może czytać z jednego partitiona z tym samym group.id jeśli się użyje assign, bo assign nie wykorzystuje consumer
+        // groups więc ma wywalone w group.id
         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerConfig);
         TopicPartition topicZeroPartition = new TopicPartition("topic-name", 0);
         consumer.assign(Collections.singleton(topicZeroPartition));
